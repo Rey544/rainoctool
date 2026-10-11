@@ -24,7 +24,7 @@
     function foldKey(title) {
         return [ projectKey, sceneId, world ? "world" : regionId, sidebar, title ].join(":");
     }
-    let toolsCollapsed = false, cutFrame = null, cutMethod = "frame", splitVertical = true, playerScale = false, cursorPoint = null;
+    let toolsCollapsed = false, cutFrame = null, cutMethod = "frame", cutIntent = "partition", splitVertical = true, playerScale = false, cursorPoint = null;
     let brushExpanded = false, lastDrawTool = "brush", pendingMarker = {}, hoverRoomId = null, hoverRegionTitleId = null;
     const el = (tag, cls, text) => {
         const e = document.createElement(tag);
@@ -1214,6 +1214,7 @@
         if (C.isDedicatedLayer(layer())) setLayer(reg().layers.find(l => !C.isDedicatedLayer(l)).id);
         cutMethod = "frame";
         setTool("split");
+        cutIntent = "create";
     }
     function startShelterRoom() {
         requireEdit(() => {
@@ -1221,6 +1222,7 @@
             setLayer(C.shelterLayer(reg()).id);
             cutMethod = "frame";
             setTool("split");
+            cutIntent = "create";
             pendingRoomType = "SHELTER";
             renderTools();
             draw();
@@ -1234,6 +1236,7 @@
             setLayer(C.gateLayer(reg()).id);
             cutMethod = "frame";
             setTool("split");
+            cutIntent = "create";
             pendingRoomType = "GATE";
             renderTools();
             draw();
@@ -1556,7 +1559,7 @@
         const box = copy(cutFrame), hits = reg().rooms.filter(rm => rm.layer === box.layer && C.intersection(rm, box)), finish = merge => requireEdit(() => {
             let accepted = false;
             change(() => {
-                const type = layer()?.kind === "shelter" ? "SHELTER" : layer()?.kind === "gate" ? "GATE" : pendingRoomType, rm = merge ? C.mergeRoomFrame(reg(), box) : C.addRoom(reg(), box);
+                const type = layer()?.kind === "shelter" ? "SHELTER" : layer()?.kind === "gate" ? "GATE" : pendingRoomType, rm = cutIntent === "partition" ? C.partitionRoom(reg(), box) : merge ? C.mergeRoomFrame(reg(), box) : C.addRoom(reg(), box);
                 if (type) C.setRoomKind(w, reg(), rm, type);
                 if (pendingRoomType === "ITERATOR") C.iteratorRoomFrame(reg(), rm, pendingRoomPreset || {});
                 selection = {
@@ -1580,7 +1583,7 @@
                 }
             }
         });
-        if (!hits.length) {
+        if (cutIntent === "partition" || !hits.length) {
             finish(false);
             return;
         }
@@ -2307,6 +2310,7 @@
     }
     const toolsList = [ [ "select", "↖", "移动" ], [ "marquee", "▱", "选区" ], [ "fill", "▨", "油漆桶" ], [ "pan", "✥", "平移" ], [ "brush", "╱", "画笔" ], [ "line", "╲", "直线" ], [ "rect", "▭", "矩形" ], [ "ellipse", "○", "圆形" ], [ "polygon", "⬡", "多边形" ], [ "erase", "⌫", "擦除" ], [ "room", "▣", "房间" ], [ "split", "▣", "分割房间" ], [ "room-resize", "▭", "调整房间" ], [ "region-resize", "▭", "区域范围" ], [ "marker", "◇", "标记" ], [ "port", "⊡", "通道井" ], [ "link", "┄", "连接" ] ];
     function setTool(v) {
+        cutIntent = "partition";
         pendingGateConnection = null;
         $("mapRecordCard")?.remove();
         resize();
