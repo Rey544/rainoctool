@@ -1,0 +1,6 @@
+Rain World game symbols: Videocult / Rain World.
+Room templates: Rain World Level Editor sample projects (Videocult / Rain World).
+Den editor symbol: Rained (https://github.com/pkhead/rained).
+Rajdhani Medium: Indian Type Foundry; SIL Open Font License 1.1.
+Fusion Pixel: TakWolf; SIL Open Font License 1.1.
+See the accompanying font license files.
